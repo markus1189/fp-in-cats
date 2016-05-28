@@ -1,0 +1,102 @@
+* Functional Programming with 'cats'
+
+** TODO Introduction
+
+** TODO Bad news?
+<picture of cats crossed through, "NOT ABOUT CATS">
+
+** TODO Worse news?
+<complicated looking picture of math / categories>
+
+** TODO Good news!
+
+** TODO What is 'cats'
+#+BEGIN_QUOTE
+Lightweight, modular, and extensible library for functional programming.
+#+END_QUOTE
+- 0.6.0 currently released, 1.0 is not far (ETA: Q3 2016)
+- Github: https://github.com/typelevel/cats
+- Guide: http://typelevel.org/cats/
+- Scaladoc: http://typelevel.org/cats/api/#package
+
+- In the following we will have a very shallow look at how 'cats' can
+  help you to write better code
+** TODO Scala not just as a 'better Java'
+- Scala allows higher level of abstraction
+- less repetition and duplicated code, less maintenance, less bugs
+- cats contains a lot of helpful constructs that can be used for this
+
+** TODO How to get started
+- at the beginning it _will_ be confusing to find stuff
+- you will get a feeling for it ☺
+- rough guide:
+
+| package       | contains                     | examples          |
+|---------------+------------------------------+-------------------|
+| ~cats~        | type classes                 | Functor,Monoid    |
+| ~cats.std~    | instances for standard Scala | List,Vector,Tuple |
+| ~cats.data~   | data types                   | Xor,Validated     |
+| ~cats.syntax~ | /optional/ syntactic sugar   |                   |
+
+** TODO À la carte or the whole menu
+- cats allows fine grained imports => only what you need
+- alternatively: import /everything/ via:
+
+#+BEGIN_SRC scala
+import cats._
+import cats.implicits._
+#+END_SRC
+
+- recommendation: take the time to learn where stuff lies
+** TODO Typesafe equality
+*** The sad story of '=='
+#+BEGIN_SRC scala
+type Email = String // TODO: make value class
+
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" == email ||
+    "developer@mail.com" == email
+}
+
+isInternal("customer@mail.com") // => false
+isInternal("admin@mail.com")    // => true
+#+END_SRC
+
+*** Refactoring time
+#+BEGIN_SRC scala
+case class Email(value: String) // extends AnyVal
+
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" == email ||
+    "developer@mail.com" == email
+}
+
+isInternal(Email("customer@mail.com"))
+isInternal(Email("admin@mail.com"))
+#+END_SRC
+
+*** An alternative: 'Eq'
+#+BEGIN_SRC scala
+import cats.Eq          // the Eq type class
+import cats.syntax.eq._ // === syntax
+
+case class Email(value: String) extends AnyVal
+object Email {
+  val eqEmail: Eq[Email] =
+    Eq.fromUniversalEquals
+}
+
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" === email ||
+    "developer@mail.com" === email
+}
+#+END_SRC
+
+** TODO cats vs scalaz
+- cats: still some things missing: ISet, IList, IMap
+- cats: circe for JSON
+- scalaz: no Task and Scalaz-Stream (soon: fs2)
+- scalaz: monocle (lenses)
+** TODO Pitfalls
+- execution context necessary for Future
+- IntelliJ will sometimes refuse to use syntax
