@@ -1,5 +1,4 @@
-* Functional Programming with 'cats'
-
+* TODO Functional Programming with 'cats'
 ** TODO Introduction
 
 ** TODO Bad news?
@@ -34,6 +33,7 @@ Lightweight, modular, and extensible library for functional programming.
 | package       | contains                     | examples          |
 |---------------+------------------------------+-------------------|
 | ~cats~        | type classes                 | Functor,Monoid    |
+| ~cats.kernel~ | essential type classes       | Eq, Ordering      |
 | ~cats.std~    | instances for standard Scala | List,Vector,Tuple |
 | ~cats.data~   | data types                   | Xor,Validated     |
 | ~cats.syntax~ | /optional/ syntactic sugar   |                   |
@@ -77,7 +77,7 @@ isInternal(Email("admin@mail.com"))
 
 *** An alternative: 'Eq'
 #+BEGIN_SRC scala
-import cats.Eq          // the Eq type class
+import cats.kernel.Eq          // the Eq type class
 import cats.syntax.eq._ // === syntax
 
 case class Email(value: String) extends AnyVal
@@ -92,6 +92,23 @@ def isInternal(email: Email): Boolean = {
 }
 #+END_SRC
 
+*** Summary: ~Eq~
+- equality based on type classes is safer
+- allows you to catch errors during refactoring
+-
+- will *not* compile
+- many ~Eq~ instances predefined
+- still some work required for own types
+** TODO Combining stuff (Monoid)
+*** Apache Spark 1
+- exercise: we want to calculate the following
+  - number of words
+  - word count _per word_
+  - average word length
+- and do this in *one traversal*
+=> Monoids!
+*** Apache Spark 2
+** TODO Validation
 ** TODO cats vs scalaz
 - cats: still some things missing: ISet, IList, IMap
 - cats: circe for JSON
