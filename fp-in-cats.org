@@ -81,6 +81,24 @@ catsSyntaxAll -> catsSyntaxElse;
 2) Import /packages/:   ~cats.<...>.all._~
 3) Import /à la carte/: ~cats.std.future._~
 
+** TODO Avoiding imports completely
+
+- using chained package clauses, you can avoid imports completely
+
+#+BEGIN_SRC scala
+package de.my.app.concurrent
+
+// becomes
+
+package de.my
+package app.concurrent
+#+END_SRC
+
+#+BEGIN_SRC scala
+package de
+package object my extends FutureInstances with ... 
+#+END_SRC
+
 ** Where to find it
 - typeclass? ~cats~, but also ~cats.kernel~ (since 0.6.0+), e.g. ~Foldable~, ~Eq~
 - data type? ~cats.data~, e.g. ~Xor~, ~Validated~
