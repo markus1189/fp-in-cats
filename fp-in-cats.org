@@ -1,14 +1,54 @@
+* Some uninteresting internal stuff
+#+BEGIN_SRC elisp
+(define-minor-mode org-presentation-mode
+  "Toggle org presentation mode."
+  :init-value nil
+  :lighter: " P"
+  :group 'org-pres)
+
+(defvar org-presentation-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<prior>") 'org-presentation-prev)
+    (define-key map (kbd "<next>") 'org-presentation-next)
+    (define-key map (kbd ". <prior>") 'org-previous-block)
+    (define-key map (kbd ". <next>") 'org-next-block)
+    (define-key map (kbd ". .") 'org-ctrl-c-ctrl-c)
+    (define-key map (kbd "ESC <f5>") 'org-presentation-prev)
+    (define-key map (kbd "<f5> ESC") 'org-presentation-prev)
+    map))
+
+(defun org-presentation-next (arg)
+  (interactive "p")
+  (progn
+    (widen)
+    (org-next-visible-heading arg)
+    (org-narrow-to-subtree)))
+
+(defun org-presentation-prev (arg)
+  (interactive "p")
+  (progn
+    (widen)
+    (org-previous-visible-heading arg)
+    (org-narrow-to-subtree)))
+
+(org-cycle '(64))
+(setq org-confirm-babel-evaluate nil)
+
+(and (y-or-n-p "Remove results?") (org-babel-remove-result-one-or-many '(4)))
+(and (y-or-n-p "Increase font?") (text-scale-set 5))
+#+END_SRC
+
+#+RESULTS:
+: t
+
+
 * TODO Functional Programming with 'cats'
 ** TODO Introduction
-
 ** TODO Bad news?
 <picture of cats crossed through, "NOT ABOUT CATS">
-
 ** TODO Worse news?
 <complicated looking picture of math / categories>
-
 ** TODO Good news!
-
 ** TODO What is 'cats'
 #+BEGIN_QUOTE
 Lightweight, modular, and extensible library for functional programming.
