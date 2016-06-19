@@ -1,4 +1,18 @@
 * Some uninteresting internal stuff
+#+BEGIN_EXAMPLE
+
+                         
+
+                        
+
+                         
+
+                       ✗
+
+☺ ☻ ✌ ✍ ✎ ✉ ☀ ☃ ☁ ☂ ★ ☆ ☮ ☯ 〠 ☎ ☏ ♕ ❏ ☐ ☑ ☒ ✓ ✗ ¢
+€ £ ❤ ❣ ❦ ♣ ♤ ♥ ♦ ♧ ► ❝ ❞ ☜ ☝ ☞ ☟ ☚ ☛ ☹ త ☣ ☠
+#+END_EXAMPLE
+
 #+BEGIN_SRC elisp
 (define-minor-mode org-presentation-mode
   "Toggle org presentation mode."
@@ -8,13 +22,19 @@
 
 (defvar org-presentation-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "<prior>") 'org-presentation-prev)
-    (define-key map (kbd "<next>") 'org-presentation-next)
-    (define-key map (kbd ". <prior>") 'org-previous-block)
-    (define-key map (kbd ". <next>") 'org-next-block)
+    (define-key map (kbd "<prior> <prior>") 'org-presentation-prev)
+    (define-key map (kbd "<next> <next>") 'org-presentation-next)
+    (define-key map (kbd "<next> <next>") 'org-presentation-next)
+    (define-key map (kbd "<prior> .") 'org-previous-block)
+    (define-key map (kbd "<next> .") 'org-next-block)
     (define-key map (kbd ". .") 'org-ctrl-c-ctrl-c)
-    (define-key map (kbd "ESC <f5>") 'org-presentation-prev)
-    (define-key map (kbd "<f5> ESC") 'org-presentation-prev)
+    (define-key map (kbd ". <next>") 'org-shifttab)
+    (define-key map (kbd "ESC <f5>") 'keyboard-quit)
+    (define-key map (kbd "<f5> ESC") 'keyboard-quit)
+    (define-key map (kbd "ESC .") 'org-display-inline-images)
+    (define-key map (kbd "<f5> .") 'org-display-inline-images)
+    (define-key map (kbd "q") (Λ (org-presentation-mode -1)
+                                 (text-scale-set 0)))
     map))
 
 (defun org-presentation-next (arg)
@@ -33,42 +53,70 @@
 
 (org-cycle '(64))
 (setq org-confirm-babel-evaluate nil)
-
-(and (y-or-n-p "Remove results?") (org-babel-remove-result-one-or-many '(4)))
-(and (y-or-n-p "Increase font?") (text-scale-set 5))
+(text-scale-set 5)
+(org-display-inline-images)
+(blink-cursor-mode -1)
+(org-presentation-mode)
 #+END_SRC
 
 #+RESULTS:
 : t
 
+* This evening at Scala User Group Köln Bonn:
+#+BEGIN_SRC sh :results output
+figlet -d fonts -f doom -w 70 -c -k "FP with cats"
+#+END_SRC
 
-* TODO Functional Programming with 'cats'
-** TODO Introduction
-** TODO Bad news?
-<picture of cats crossed through, "NOT ABOUT CATS">
-** TODO Worse news?
-<complicated looking picture of math / categories>
-** TODO Good news!
-** TODO What is 'cats'
+#+RESULTS:
+:    ______ ______             _  _    _                   _
+:    |  ___|| ___ \           (_)| |  | |                 | |
+:    | |_   | |_/ / __      __ _ | |_ | |__     ___  __ _ | |_  ___
+:    |  _|  |  __/  \ \ /\ / /| || __|| '_ \   / __|/ _` || __|/ __|
+:    | |    | |      \ V  V / | || |_ | | | | | (__| (_| || |_ \__ \
+:    \_|    \_|       \_/\_/  |_| \__||_| |_|  \___|\__,_| \__||___/
+:
+:
+
+* First off, the bad news
+[[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]
+* Check for some basic understanding
+
+ Who knows about
+
+  free adjoint functors?
+  star-autonomous categories?
+  geometric morphisms?
+
+* Functional Programming has nothing to do with this
+
+Good! You don't need them anyway. Instead:
+
+- Monoid: *combine* things
+- Xor & Validated: *errors*, better than ~scala.Either~
+- Traverse: effectful *map* of things
+
+* What is 'cats'
+
 #+BEGIN_QUOTE
 Lightweight, modular, and extensible library for functional programming.
 #+END_QUOTE
-- 0.6.0 currently released, 1.0 is not far (ETA: Q3 2016)
-- Github: https://github.com/typelevel/cats
-- Guide: http://typelevel.org/cats/
-- Scaladoc: http://typelevel.org/cats/api/#package
 
-- In the following we will have a very shallow look at how 'cats' can
-  help you to write better code
-** TODO Scala not just as a 'better Java'
-- Scala allows higher level of abstraction
-- less repetition and duplicated code, less maintenance, less bugs
-- cats contains a lot of helpful constructs that can be used for this
+  0.6.0 currently released, 1.0 is not far (ETA: Q3 2016)
+  Github: https://github.com/typelevel/cats
+  Guide: http://typelevel.org/cats/
+  Scaladoc: http://typelevel.org/cats/api/#package
 
-** TODO How to get started
-- at the beginning it _will_ be confusing to find stuff
-- you will get a feeling for it ☺
-- rough guide:
+* Why should you learn about 'cats'?
+
+  raise the abstraction level
+  less repetition and duplicated code, less maintenance, less bugs
+  a lot of helpful constructs that can be used for this
+
+* TODO General structure of packages in cats
+
+  at the beginning it _will_ be confusing to find stuff
+  you will get a feeling for it ☺
+  rough guide:
 
 | package       | contains                     | examples          |
 |---------------+------------------------------+-------------------|
@@ -78,11 +126,8 @@ Lightweight, modular, and extensible library for functional programming.
 | ~cats.data~   | data types                   | Xor,Validated     |
 | ~cats.syntax~ | /optional/ syntactic sugar   |                   |
 
-** TODO À la carte or the whole menu
-
-- cats allows you to import stuff in many ways
-
-#+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=28
+* TODO Imports: à la carte or the whole menu
+#+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=20
 digraph {
 rankdir=LR;
 catsImplicits [label="cats.implicits"];
@@ -121,9 +166,9 @@ catsSyntaxAll -> catsSyntaxElse;
 2) Import /packages/:   ~cats.<...>.all._~
 3) Import /à la carte/: ~cats.std.future._~
 
-** TODO Avoiding imports completely
+* TODO Avoiding imports completely
 
-- using chained package clauses, you can avoid imports completely
+  using chained package clauses, you can avoid imports completely
 
 #+BEGIN_SRC scala
 package de.my.app.concurrent
@@ -136,74 +181,34 @@ package app.concurrent
 
 #+BEGIN_SRC scala
 package de
-package object my extends FutureInstances with ... 
+package object my extends FutureInstances with ...
 #+END_SRC
 
-** Where to find it
-- typeclass? ~cats~, but also ~cats.kernel~ (since 0.6.0+), e.g. ~Foldable~, ~Eq~
-- data type? ~cats.data~, e.g. ~Xor~, ~Validated~
-- instances for typeclasses? ~cats.std.<...>~ or ~cats.kernel.<...>~
+* Where to find it
 
-** TODO Typesafe equality
-*** The sad story of '=='
+  typeclass? ~cats~, but also ~cats.kernel~ (since 0.6.0+), e.g. ~Foldable~, ~Eq~
+  data type? ~cats.data~, e.g. ~Xor~, ~Validated~
+  instances for typeclasses? ~cats.std.<...>~ or ~cats.kernel.<...>~
+* TODO Combining stuff (Monoid)
+
 #+BEGIN_SRC scala
-type Email = String // TODO: make value class
-
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" == email ||
-    "developer@mail.com" == email
+trait Monoid[A] {
+  def combine(x: A, y: A): A
+  def empty: A
 }
 
-isInternal("customer@mail.com") // => false
-isInternal("admin@mail.com")    // => true
 #+END_SRC
+** Apache Spark 1
 
-*** Refactoring time
-#+BEGIN_SRC scala
-case class Email(value: String) // extends AnyVal
+  exercise: we want to calculate the following
+    number of words
+    word count _per word_
+    average word length
+  and do this in *one traversal*
 
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" == email ||
-    "developer@mail.com" == email
-}
+Ideas?
+** Apache Spark 2
 
-isInternal(Email("customer@mail.com"))
-isInternal(Email("admin@mail.com"))
-#+END_SRC
-
-*** An alternative: 'Eq'
-#+BEGIN_SRC scala
-import cats.kernel.Eq          // the Eq type class
-import cats.syntax.eq._ // === syntax
-
-case class Email(value: String) extends AnyVal
-object Email {
-  val eqEmail: Eq[Email] =
-    Eq.fromUniversalEquals
-}
-
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" === email ||
-    "developer@mail.com" === email
-}
-#+END_SRC
-
-*** Summary: ~Eq~
-- equality based on type classes is safer
-- allows you to catch errors during refactoring
--
-- will *not* compile
-- many ~Eq~ instances predefined
-- still some work required for own types
-** TODO Combining stuff (Monoid)
-*** Apache Spark 1
-- exercise: we want to calculate the following
-  - number of words
-  - word count _per word_
-  - average word length
-- and do this in *one traversal*
-=> Monoids!
-*** Apache Spark 2
 #+BEGIN_SRC sbt
 name := "Spark Sandbox"
 
@@ -278,14 +283,88 @@ object Main {
 ./spark-submit --class Main --master spark://nixos:7077 ~/src/scala/spark-sandbox/target/scala-2.10/Spark-Sandbox-assembly-0.1-SNAPSHOT.jar
 #+END_SRC
 
-#+RESULTS:
+* TODO Typesafe equality
+** The sad story of '=='
+#+BEGIN_SRC scala
+type Email = String // TODO: make value class
 
-** TODO Validation
-** TODO cats vs scalaz
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" == email ||
+    "developer@mail.com" == email
+}
+
+isInternal("customer@mail.com") // => false
+isInternal("admin@mail.com")    // => true
+#+END_SRC
+
+** Refactoring time
+#+BEGIN_SRC scala
+case class Email(value: String) // extends AnyVal
+
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" == email ||
+    "developer@mail.com" == email
+}
+
+isInternal(Email("customer@mail.com"))
+isInternal(Email("admin@mail.com"))
+#+END_SRC
+
+** An alternative: 'Eq'
+#+BEGIN_SRC scala
+import cats.kernel.Eq          // the Eq type class
+import cats.syntax.eq._ // === syntax
+
+case class Email(value: String) extends AnyVal
+object Email {
+  val eqEmail: Eq[Email] =
+    Eq.fromUniversalEquals
+}
+
+def isInternal(email: Email): Boolean = {
+  "admin@mail.com" === email ||
+    "developer@mail.com" === email
+}
+#+END_SRC
+
+** Summary: ~Eq~
+- equality based on type classes is safer
+- allows you to catch errors during refactoring
+-
+- will *not* compile
+- many ~Eq~ instances predefined
+- still some work required for own types
+
+* Xor, the Greek God of Error
+
+#+BEGIN_SRC scala
+def validatePassword(pw: String): Boolean = {
+  def minLength(s: String): Xor[String,Unit]
+}
+#+END_SRC
+* TODO cats vs scalaz
 - cats: still some things missing: ISet, IList, IMap
 - cats: circe for JSON
 - scalaz: no Task and Scalaz-Stream (soon: fs2)
 - scalaz: monocle (lenses)
-** TODO Pitfalls
+* TODO Pitfalls
 - execution context necessary for Future
 - IntelliJ will sometimes refuse to use syntax
+
+* The end
+#+BEGIN_SRC sh :results output
+figlet -d fonts -f doom -w 70 -c -k "The End"
+#+END_SRC
+
+#+RESULTS:
+:                _____  _             _____            _
+:               |_   _|| |           |  ___|          | |
+:                 | |  | |__    ___  | |__  _ __    __| |
+:                 | |  | '_ \  / _ \ |  __|| '_ \  / _` |
+:                 | |  | | | ||  __/ | |___| | | || (_| |
+:                 \_/  |_| |_| \___| \____/|_| |_| \__,_|
+:
+:
+
+* Local words
+#  LocalWords:  adjoint
