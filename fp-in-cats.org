@@ -1,18 +1,4 @@
-* Some uninteresting internal stuff
-#+BEGIN_EXAMPLE
-
-                         
-
-                        
-
-                         
-
-                       ✗
-
-☺ ☻ ✌ ✍ ✎ ✉ ☀ ☃ ☁ ☂ ★ ☆ ☮ ☯ 〠 ☎ ☏ ♕ ❏ ☐ ☑ ☒ ✓ ✗ ¢
-€ £ ❤ ❣ ❦ ♣ ♤ ♥ ♦ ♧ ► ❝ ❞ ☜ ☝ ☞ ☟ ☚ ☛ ☹ త ☣ ☠
-#+END_EXAMPLE
-
+* Top Secret
 #+BEGIN_SRC elisp
 (define-minor-mode org-presentation-mode
   "Toggle org presentation mode."
@@ -51,6 +37,7 @@
     (org-previous-visible-heading arg)
     (org-narrow-to-subtree)))
 
+(org-babel-remove-result-one-or-many '(4))
 (org-cycle '(64))
 (setq org-confirm-babel-evaluate nil)
 (text-scale-set 5)
@@ -67,33 +54,32 @@
 figlet -d fonts -f doom -w 70 -c -k "FP with cats"
 #+END_SRC
 
-#+RESULTS:
-:    ______ ______             _  _    _                   _
-:    |  ___|| ___ \           (_)| |  | |                 | |
-:    | |_   | |_/ / __      __ _ | |_ | |__     ___  __ _ | |_  ___
-:    |  _|  |  __/  \ \ /\ / /| || __|| '_ \   / __|/ _` || __|/ __|
-:    | |    | |      \ V  V / | || |_ | | | | | (__| (_| || |_ \__ \
-:    \_|    \_|       \_/\_/  |_| \__||_| |_|  \___|\__,_| \__||___/
-:
-:
-
 * First off, the bad news
-[[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]
+
+
+                                [[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]
+
 * Check for some basic understanding
 
- Who knows about
+-> Who knows about
 
-  free adjoint functors?
-  star-autonomous categories?
-  geometric morphisms?
+ -> free adjoint functors?
+ -> star-autonomous categories?
+ -> geometric morphisms?
 
 * Functional Programming has nothing to do with this
 
-Good! You don't need them anyway. Instead:
+Good! You don't need them anyway. ¯\_(ツ)_/¯
 
-- Monoid: *combine* things
-- Xor & Validated: *errors*, better than ~scala.Either~
-- Traverse: effectful *map* of things
+Plan for today:
+
+- Not about how good FP is (but it is!)
+- Spot the pattern 1: combine things
+- How cats is organized
+- Spot the pattern 2: nested things
+- Cats vs. Scalaz
+- Some pitfalls
+- Conclusion
 
 * What is 'cats'
 
@@ -101,22 +87,139 @@ Good! You don't need them anyway. Instead:
 Lightweight, modular, and extensible library for functional programming.
 #+END_QUOTE
 
-  0.6.0 currently released, 1.0 is not far (ETA: Q3 2016)
-  Github: https://github.com/typelevel/cats
-  Guide: http://typelevel.org/cats/
-  Scaladoc: http://typelevel.org/cats/api/#package
+ -> 0.6.0 currently released, 1.0 is not far (ETA: Q3 2016)
+ -> Github: https://github.com/typelevel/cats
+ -> Guide: http://typelevel.org/cats/
+ -> Scaladoc: http://typelevel.org/cats/api/#package
 
-* Why should you learn about 'cats'?
+* TODO Why should you learn about 'cats'?
 
-  raise the abstraction level
-  less repetition and duplicated code, less maintenance, less bugs
-  a lot of helpful constructs that can be used for this
+ -> raise the abstraction level
+ -> less repetition and duplicated code, less maintenance, less bugs
+ -> many common patterns are already implemented here
 
-* TODO General structure of packages in cats
+* Combining stuff (Monoid)
 
-  at the beginning it _will_ be confusing to find stuff
-  you will get a feeling for it ☺
-  rough guide:
+Can you spot a pattern here?
+
+#+BEGIN_SRC scala
+val add = (0 + 1) + 5
+val mul = (1 * 2) * 5
+val cat = (List() ++ List(1)) ++ List(2,3)
+#+END_SRC
+
+* Abstracting with Monoids
+
+#+BEGIN_SRC scala
+val add = (empty |+| 1) |+| 5
+val mul = (empty |+| 2) |+| 5
+val mul = (empty |+| List(1)) |+| List(2,3)
+#+END_SRC
+
+The general structure of the computation is the same
+
+* Definition of Monoids
+
+The Monoid type class:
+
+#+BEGIN_SRC scala
+trait Monoid[A] {
+  def empty: A
+
+  def combine(x: A, y: A): A
+}
+#+END_SRC
+
+* Monoid Rules
+
+Implementations have to obey some rules:
+
+#+BEGIN_EXAMPLE
+
+1) empty |+| x === x
+
+2) x |+| empty === x
+
+3) (x |+| y) |+| z === x |+| (y |+| z)
+
+#+END_EXAMPLE
+
+* Let's define some Monoids
+
+1) Addition
+2) Multiplication
+3) List concatenation
+
+#+BEGIN_SRC scala
+object Monoid {
+  type X = ???
+  val ourMonoid: Monoid[X] = new Monoid[X] {
+    override def empty: X = ???
+    override def combine(x: X, y: X): X = ???
+  }
+}
+#+END_SRC
+* Monoids can be combined
+
+We can build monoids from monoids:
+
+#+BEGIN_SRC scala
+def option[A:Monoid] = new Monoid[Option[A]] {
+  def empty = None
+
+  def combine(x: Option[A], y: Option[A]) = (x,y) match {
+    case (Some(xx),Some(yy)) => Some(xx |+| yy)
+    case (Some(xx),None) => Some(xx)
+    case (None,Some(yy)) => Some(yy)
+    case (None,None) => None
+  }
+}
+#+END_SRC
+
+* Monoids everywhere
+
+#+BEGIN_SRC scala
+1 |+| 2                           // 3
+Future(1) |+| Future(2)           // Future(3)
+Some("Hello, ") |+| Some("World") // Some("Hello, World")
+#+END_SRC
+
+Also:
+
+  - Order[A] (lexical ordering)
+  - Either[A,B] if Monoid[B]
+  - A => B      if Monoid[B]
+  - Map[A,B]    if Monoid[B]
+  - (A,B) if Monoid[A] and Monoid[B]
+
+* Monoids for the real world
+
+         [[file:pics/skeptical.jpg]]
+
+* Apache Spark
+
+Task: calculate statistics with Apache Spark
+
+  a) number of words
+  b) word count per word
+  c) average word length
+  +) make it easy to extend
+
+Easy? Only do *one* traversal over the input
+
+* But before, let's talk about cats
+
+    [[file:pics/cat_appears.jpg]]
+
+* Cats, a library for FP in Scala
+
+-> cats defines a lot of things
+-> organization is confusing at first
+  -> but obvious after learning some rules
+
+=> let's take a look
+
+* General structure of packages in cats
 
 | package       | contains                     | examples          |
 |---------------+------------------------------+-------------------|
@@ -126,8 +229,8 @@ Lightweight, modular, and extensible library for functional programming.
 | ~cats.data~   | data types                   | Xor,Validated     |
 | ~cats.syntax~ | /optional/ syntactic sugar   |                   |
 
-* TODO Imports: à la carte or the whole menu
-#+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=20
+* Imports: à la carte or the whole menu
+#+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=18
 digraph {
 rankdir=LR;
 catsImplicits [label="cats.implicits"];
@@ -162,128 +265,139 @@ catsSyntaxAll -> catsSyntaxElse;
 #+RESULTS:
 [[file:packages.png]]
 
-1) Import /everything/: ~cats.implicits._~
-2) Import /packages/:   ~cats.<...>.all._~
-3) Import /à la carte/: ~cats.std.future._~
+1) Import /everything/: ~import cats.implicits._~
+2) Import /packages/:   ~import cats.<...>.all._~
+3) Import /à la carte/: ~import cats.std.future._~
 
-* TODO Avoiding imports completely
-
-  using chained package clauses, you can avoid imports completely
+* It's up to you
 
 #+BEGIN_SRC scala
-package de.my.app.concurrent
+import cats.implicits._
 
-// becomes
-
-package de.my
-package app.concurrent
+(List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
+
+ VS
 
 #+BEGIN_SRC scala
-package de
-package object my extends FutureInstances with ...
+import cats.syntax.semigroup._
+import cats.std.tuple._
+import cats.std.list._
+
+(List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
+* Having fine grained imports
+
+  [[file:pics/modular.jpeg]]
 
 * Where to find it
 
-  typeclass? ~cats~, but also ~cats.kernel~ (since 0.6.0+), e.g. ~Foldable~, ~Eq~
-  data type? ~cats.data~, e.g. ~Xor~, ~Validated~
-  instances for typeclasses? ~cats.std.<...>~ or ~cats.kernel.<...>~
-* TODO Combining stuff (Monoid)
+ ?) typeclass (Monoid,Ordering)
+   -> ~cats~,
+      or ~cats.kernel~ (since 0.6.0+)
+
+ ?) data type (Xor, Validated)
+   -> ~cats.data~
+
+ ?) instances (List monoid, ordering for xyz)
+   -> ~cats.std.<...>~,
+      or ~cats.kernel.<...>~
+
+* Middle ground for imports with package objects
+
+package object
+  + some explicit imports
+  + chained package clauses
 
 #+BEGIN_SRC scala
-trait Monoid[A] {
-  def combine(x: A, y: A): A
-  def empty: A
-}
+package object codecentric extends CatsPkg
 
+trait CatsPkg
+  extends FutureInstances
+  with ListInstances
+  with SemigroupSyntax
+  // with ...
 #+END_SRC
-** Apache Spark 1
 
-  exercise: we want to calculate the following
-    number of words
-    word count _per word_
-    average word length
-  and do this in *one traversal*
-
-Ideas?
-** Apache Spark 2
-
-#+BEGIN_SRC sbt
-name := "Spark Sandbox"
-
-scalaVersion := "2.10.6"
-
-libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "1.6.1" % "provided",
-  "org.typelevel" %% "cats-core" % "0.6.0")
-#+END_SRC
+** Apache Spark - Using Monoids
 
 #+BEGIN_SRC scala
-import org.apache.spark._
+// Monoid for Map, Option & Integer addition
 
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
-import org.apache.spark.SparkConf
+def step(word: String) = (1,Map(word->1),word.length)
 
-import cats._
-import cats.kernel.Monoid
-import cats.std.tuple._
-import cats.kernel.std.option._
-import cats.kernel.std.int._
-import cats.syntax.semigroup._
+val data = sc.textFile(file).flatMap(_.split("""\s+""")).map(step)
 
-// Value classes broken in 2.10: SI-7685
-case class Min[A](value: A)  // extends AnyVal
-case class Max[A](value: A)  // extends AnyVal
-case class Prod[A](value: A) // extends AnyVal
+val z = Monoid.empty[(Int,Map[String,Int],Int)]
 
-object Min {
-  implicit def minSemi[A: Order] = new Semigroup[Min[A]] {
-    private val o = implicitly[Order[A]]
-    def combine(x: Min[A], y: Min[A]): Min[A] = (x, y) match {
-      case (Min(xx), Min(yy)) => Min(o.min(xx, yy))
-    }
-  }
-}
-
-object Max {
-  implicit def maxSemi[A: Order] = new Semigroup[Max[A]] {
-    private val o = implicitly[Order[A]]
-    def combine(x: Max[A], y: Max[A]): Max[A] = (x, y) match {
-      case (Max(xx), Max(yy)) => Max(o.max(xx, yy))
-    }
-  }
-}
-
-object Main {
-  def main(args: Array[String]) = {
-    def expand(word: String) = {
-      (Option(Max(word.length)), Option(Min(word.length)), word.length, 1)
-    }
-
-    val file = "/home/markus/repos/clones/stack/README.md" // Should be some file on your system
-    val conf = new SparkConf().setJars(Seq("/home/markus/src/scala/spark-sandbox/target/scala-2.10/Spark-Sandbox-assembly-0.1-SNAPSHOT.jar")).setMaster("spark://nixos:7077").setAppName("spark-cats")
-    val sc = new SparkContext(conf)
-    val data = sc.textFile(file).flatMap(_.split("""\s+""")).map(expand)
-    val z = Monoid.empty[(Option[Max[Int]],Option[Min[Int]],Int,Int)]
-    val (max,min,chars,words) = data.fold(z)(_ |+| _)
-    println(s"""Finished calculation:
-               |  - max word length: $max
-               |  - min word length: $min
-               |  - total characters: $chars
-               |  - total words: $words
-               |  - average word length: ${chars/words}
-               |""".stripMargin)
-  }
-}
+val (words,wordCount,chars) = data.fold(z)(_ |+| _)
 #+END_SRC
 
-#+BEGIN_SRC sh
-./spark-submit --class Main --master spark://nixos:7077 ~/src/scala/spark-sandbox/target/scala-2.10/Spark-Sandbox-assembly-0.1-SNAPSHOT.jar
+** Apache Spark - Extension: Max word length
+#+BEGIN_SRC scala
+// define Monoid instance for Max
+
+def step(word: String) =
+  (1,Map(word->1),word.length,Option(Max(word.length)))
+
+val data = sc.textFile(file).flatMap(_.split("""\s+""")).map(step)
+
+val z = Monoid.empty[(Int,Map[String,Int],Int,Option[Max[Int]])]
+
+val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
 #+END_SRC
 
-* TODO Typesafe equality
+* From Apache Spark back to cats
+
+    [[file:pics/cat_appears2.jpg]]
+
+* Spot the pattern (round 2)
+
+#+BEGIN_SRC scala
+TODO
+#+END_SRC
+
+* TODO cats vs scalaz
+- cats: most stuff you'll need, but still some things missing
+- cats: more modular: cats-core, cats-free, dogs, kittens
+- cats: circe for JSON
+- scalaz: no Task and Scalaz-Stream (soon: fs2)
+- scalaz: monocle (lenses)
+- scalaz: tagged, for alternative instances
+* TODO Pitfalls
+- execution context necessary for Future
+- IntelliJ will sometimes refuse to use syntax
+* The end
+#+BEGIN_SRC sh :results output
+figlet -d fonts -f doom -w 70 -c -k "The End"
+#+END_SRC
+
+* Bonus
+#+BEGIN_SRC sh :results output
+figlet -d fonts -f doom -c -k -w 70 "No, really. The End"
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+          _   _                              _  _
+         | \ | |                            | || |
+         |  \| |  ___      _ __  ___   __ _ | || | _   _
+         | . ` | / _ \    | '__|/ _ \ / _` || || || | | |
+         | |\  || (_) |_  | |  |  __/| (_| || || || |_| | _
+         \_| \_/ \___/( ) |_|   \___| \__,_||_||_| \__, |(_)
+                      |/                            __/ |
+                                                   |___/
+               _____  _             _____            _
+              |_   _|| |           |  ___|          | |
+                | |  | |__    ___  | |__  _ __    __| |
+                | |  | '_ \  / _ \ |  __|| '_ \  / _` |
+                | |  | | | ||  __/ | |___| | | || (_| |
+                \_/  |_| |_| \___| \____/|_| |_| \__,_|
+
+
+#+end_example
+
+* Typesafe equality
 ** The sad story of '=='
 #+BEGIN_SRC scala
 type Email = String // TODO: make value class
@@ -342,29 +456,6 @@ def validatePassword(pw: String): Boolean = {
   def minLength(s: String): Xor[String,Unit]
 }
 #+END_SRC
-* TODO cats vs scalaz
-- cats: still some things missing: ISet, IList, IMap
-- cats: circe for JSON
-- scalaz: no Task and Scalaz-Stream (soon: fs2)
-- scalaz: monocle (lenses)
-* TODO Pitfalls
-- execution context necessary for Future
-- IntelliJ will sometimes refuse to use syntax
-
-* The end
-#+BEGIN_SRC sh :results output
-figlet -d fonts -f doom -w 70 -c -k "The End"
-#+END_SRC
-
-#+RESULTS:
-:                _____  _             _____            _
-:               |_   _|| |           |  ___|          | |
-:                 | |  | |__    ___  | |__  _ __    __| |
-:                 | |  | '_ \  / _ \ |  __|| '_ \  / _` |
-:                 | |  | | | ||  __/ | |___| | | || (_| |
-:                 \_/  |_| |_| \___| \____/|_| |_| \__,_|
-:
-:
 
 * Local words
-#  LocalWords:  adjoint
+#  LocalWords:  adjoint functors monoids morphisms
