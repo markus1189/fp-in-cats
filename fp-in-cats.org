@@ -409,6 +409,18 @@ parse("42").flatMap {
 }
 #+END_SRC
 
+* That is not nice :(
+
+-> Can you spot a pattern:
+
+#+BEGIN_SRC scala
+parse("42").map(_.map(x => add1(x).map(_.map(positive))))
+// Future[Option[Future[Option[Future[Option[Boolean]]]]]]
+#+END_SRC
+
+-> Quiz: why does flatMap not work here?
+
+* Cats to the rescue
 
 * TODO cats vs scalaz
 - cats: most stuff you'll need, but still some things missing
