@@ -367,8 +367,42 @@ val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
 * Spot the pattern (round 2)
 
 #+BEGIN_SRC scala
+def parse(s: String): Option[Int] = Some(s.toInt)
 
+def add1(i: Int): Option[Int] = Some(i+1)
+
+def positive(i: Int): Option[Boolean] = Some(i > 0)
+
+for {
+  parsed <- parse("42")
+  added  <- add1(parsed)
+  result <- positive(added)
+} yield result
 #+END_SRC
+
+So far, so good
+
+* Let's use Futures
+
+#+BEGIN_SRC scala
+def parse(s: String): Future[Option[Int]] =
+  Future.successful(Some(s.toInt))
+
+def add1(i: Int): Future[Option[Int]] =
+  Future.successful(Some(i+1))
+
+def positive(i: Int): Future[Option[Boolean]] =
+  Future.successful(Some(i > 0))
+
+parse("42").flatMap {
+  case None => Future.successful(None)
+  case Some(int) => add1(int).flatMap {
+    case None => Future.successful(None)
+    case Some(int) => positive(int)
+  }
+}
+#+END_SRC
+
 
 * TODO cats vs scalaz
 - cats: most stuff you'll need, but still some things missing
