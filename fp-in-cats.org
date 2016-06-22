@@ -367,7 +367,7 @@ val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
 * Spot the pattern (round 2)
 
 #+BEGIN_SRC scala
-TODO
+
 #+END_SRC
 
 * TODO cats vs scalaz
