@@ -319,7 +319,20 @@ trait CatsPkg
   // with ...
 #+END_SRC
 
-** Apache Spark - Using Monoids
+* Using apply vs syntax
+
+-> use typeclass explicitly
+-> or import the provided syntax magic
+
+#+BEGIN_SRC scala
+Functor[Option].void(Option("42"))
+
+Option("42").void
+#+END_SRC
+
+-> mostly up to you but pitfalls apply (later)
+
+* Apache Spark - Using Monoids
 
 #+BEGIN_SRC scala
 // Monoid for Map, Option & Integer addition
