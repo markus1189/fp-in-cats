@@ -377,9 +377,25 @@ TODO
 - scalaz: no Task and Scalaz-Stream (soon: fs2)
 - scalaz: monocle (lenses)
 - scalaz: tagged, for alternative instances
-* TODO Pitfalls
-- execution context necessary for Future
-- IntelliJ will sometimes refuse to use syntax
+
+* Pitfalls
+
+-> there are some subtle issues when starting with cats
+-> we are going to look at some pitfalls
+-> some are IntelliJ related, other specific to compiler
+
+* Cats can't find the instance
+
+#+BEGIN_SRC scala
+import cats.std.future._
+import cats.syntax.functor._
+import scala.concurrent._
+
+Functor[Future].map(Future.successful("42"))(_.toInt)
+#+END_SRC
+
+
+
 * The end
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -w 70 -c -k "The End"
