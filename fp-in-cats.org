@@ -456,6 +456,18 @@ parse("42").map(_.map(x => add1(x).map(_.map(positive))))
 
 * Cats to the rescue
 
+- There is a pattern: ~F[G[F[G[F[G[...]]]]]]~
+- Idea:
+
+#+BEGIN_SRC scala
+type H[A] = F[G[A]]
+#+END_SRC
+
+- So our type becomes ~H[H[H[...]]]~
+- Now we just have to flatten
+
+* For-comprehension-ability restored \o/
+
 #+BEGIN_SRC scala
 (for {
   parsed <- OptionT(parse("42"))
@@ -466,12 +478,14 @@ parse("42").map(_.map(x => add1(x).map(_.map(positive))))
 
 * The M-word
 
-- this "magic" is known as M-word Transformers
-- make for-comprehension work and reduce boilerplate
-- xyzT = wrapping values of ~F[xyz[A]]~ for any F
-- OptionT => wrap ~F[Option[A]]~, F above is Future
+- known as M-word Transformers
+- think: make for-comprehension work and reduce boilerplate
+- ~xyzT~ = wrapping values of ~F[xyz[A]]~ for any F
+
+- in our case: ~Future[Option[Future[Option[...]]]]~
+- OptionT = wrap ~F[Option[A]]~, F above is Future
    - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
-- XorT => like ~OptionT~ but for ~Xor~
+- ~XorT~ => like ~OptionT~ but for ~Xor~
 
 * TODO cats vs scalaz
 
@@ -484,9 +498,9 @@ parse("42").map(_.map(x => add1(x).map(_.map(positive))))
 
 * Pitfalls
 
--> there are some subtle issues when starting with cats
--> we are going to look at some pitfalls
--> some are IntelliJ related, other specific to compiler
+- there are some subtle issues when starting with cats
+- we are going to look at some pitfalls
+- some are IntelliJ related, other specific to compiler
 
 * Cats can't find the instance
 
@@ -518,6 +532,7 @@ Traverse[λ[A=>Either[String,A]]].sequence(either)
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -w 70 -c -k "The End"
 #+END_SRC
+
 
 * Bonus
 #+BEGIN_SRC sh :results output
