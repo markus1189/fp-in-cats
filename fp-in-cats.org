@@ -81,6 +81,28 @@ Plan for today:
 - Some pitfalls
 - Conclusion
 
+* Some technicality before we start
+
+(I have to eval this for rest of examples)
+
+#+BEGIN_SRC scala
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import cats._, cats.kernel._, cats.data._, cats.implicits._
+
+println("All set, let's go!")
+#+END_SRC
+
+#+RESULTS:
+: Loading /tmp/scala-eval28536JkD...
+: import scala.concurrent.Future
+: import scala.concurrent.ExecutionContext.Implicits.global
+: import cats._
+: import cats.kernel._
+: import cats.data._
+: import cats.implicits._
+: All set, let's go!
+
 * What is 'cats'
 
 #+BEGIN_QUOTE
