@@ -93,6 +93,7 @@ import cats._, cats.kernel._, cats.data._, cats.implicits._
 println("All set, let's go!")
 #+END_SRC
 
+
 * What is 'cats'
 
 #+BEGIN_QUOTE
@@ -147,7 +148,6 @@ trait Monoid[A] {
 }
 
 implicit class MonoidOps[A](val self: A) {
-  // |+| in cats
   def +|+(other: A)(implicit M: Monoid[A]) = M.combine(self,other)
 }
 #+END_SRC
@@ -318,20 +318,21 @@ import cats.std.list._
 (List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
 
+
 * Having fine grained imports
 
   [[file:pics/modular.jpeg]]
 
 * Where to find it
 
- ?) typeclass (Monoid,Ordering)
+ 1) typeclass (Monoid,Ordering)
    -> ~cats~,
       or ~cats.kernel~ (since 0.6.0+)
 
- ?) data type (Xor, Validated)
+ 2) data type (Xor, Validated)
    -> ~cats.data~
 
- ?) instances (List monoid, ordering for xyz)
+ 3) instances (List monoid, ordering for xyz)
    -> ~cats.std.<...>~,
       or ~cats.kernel.<...>~
 
@@ -353,8 +354,8 @@ trait CatsPkg
 
 * Using apply vs syntax
 
--> use typeclass explicitly
--> or import the provided syntax magic
+- use typeclass explicitly
+- or import the provided syntax "magic"
 
 #+BEGIN_SRC scala
 Functor[Option].void(Option("42"))
@@ -364,8 +365,8 @@ Functor[Option].void(Option("42"))
 Option("42").void
 #+END_SRC
 
--> mostly up to you
--> DISCLAIMER: pitfalls apply (later)
+mostly up to you,
+DISCLAIMER: pitfalls apply (later)
 
 * Apache Spark - Using Monoids
 
@@ -381,7 +382,8 @@ val z = Monoid.empty[(Int,Map[String,Int],Int)]
 val (words,wordCount,chars) = data.fold(z)(_ |+| _)
 #+END_SRC
 
-** Apache Spark - Extension: Max word length
+* Apache Spark - Extension: Max word length
+
 #+BEGIN_SRC scala
 // define Monoid instance for Max
 
@@ -439,6 +441,7 @@ parse("42").flatMap {
   }
 }
 #+END_SRC
+
 
 * That is not nice :(
 
