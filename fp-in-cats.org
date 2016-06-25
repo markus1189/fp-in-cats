@@ -93,16 +93,6 @@ import cats._, cats.kernel._, cats.data._, cats.implicits._
 println("All set, let's go!")
 #+END_SRC
 
-#+RESULTS:
-: Loading /tmp/scala-eval28536JkD...
-: import scala.concurrent.Future
-: import scala.concurrent.ExecutionContext.Implicits.global
-: import cats._
-: import cats.kernel._
-: import cats.data._
-: import cats.implicits._
-: All set, let's go!
-
 * What is 'cats'
 
 #+BEGIN_QUOTE
@@ -134,9 +124,13 @@ val cat = (List() ++ List(1)) ++ List(2,3)
 * Abstracting with Monoids
 
 #+BEGIN_SRC scala
-val add = (empty |+| 1) |+| 5
-val mul = (empty |+| 2) |+| 5
-val mul = (empty |+| List(1)) |+| List(2,3)
+def empty1: Int = 0
+def empty2: Int = 1
+def empty3: List[Int] = List()
+
+val add = (empty1 |+| 1) |+| 5
+val mul = (empty2 |+| 2) |+| 5
+val mul = (empty3 |+| List(1)) |+| List(2,3)
 #+END_SRC
 
 The general structure of the computation is the same!
@@ -150,6 +144,11 @@ trait Monoid[A] {
   def empty: A
 
   def combine(x: A, y: A): A
+}
+
+implicit class MonoidOps[A](val self: A) {
+  // |+| in cats
+  def +|+(other: A)(implicit M: Monoid[A]) = M.combine(self,other)
 }
 #+END_SRC
 
@@ -175,12 +174,10 @@ Implementations have to obey some rules:
 3) List concatenation
 
 #+BEGIN_SRC scala
-object Monoids {
-  type X = ???
-  val ourMonoid: Monoid[X] = new Monoid[X] {
-    override def empty: X = ???
-    override def combine(x: X, y: X): X = ???
-  }
+type X = ???
+implicit val ourMonoid: Monoid[X] = new Monoid[X] {
+  override def empty: X = ???
+  override def combine(x: X, y: X): X = ???
 }
 #+END_SRC
 
@@ -190,11 +187,11 @@ object Monoids {
 We can build monoids from monoids:
 
 #+BEGIN_SRC scala
-def option[A:Monoid] = new Monoid[Option[A]] {
+implicit def option[A:Monoid] = new Monoid[Option[A]] {
   def empty = None
 
   def combine(x: Option[A], y: Option[A]) = (x,y) match {
-    case (Some(xx),Some(yy)) => Some(xx |+| yy)
+    case (Some(xx),Some(yy)) => Some(xx +|+ yy)
     case (Some(xx),None) => Some(xx)
     case (None,Some(yy)) => Some(yy)
     case (None,None) => None
@@ -202,22 +199,30 @@ def option[A:Monoid] = new Monoid[Option[A]] {
 }
 #+END_SRC
 
+#+BEGIN_SRC scala
+val none: Option[Int] = None
+Option(1) +|+ Option(2)
+Option(1) +|+ none
+none +|+ Option(42)
+none +|+ none
+#+END_SRC
+
 
 * Monoids everywhere
 
-#+BEGIN_SRC scala
+#+BEGIN_EXAMPLE
 1 |+| 2                           // 3
 Future(1) |+| Future(2)           // Future(3)
 Some("Hello, ") |+| Some("World") // Some("Hello, World")
-#+END_SRC
+#+END_EXAMPLE
 
 Also:
 
-  - Order[A] (lexical ordering)
-  - Either[A,B] if Monoid[B]
-  - A => B      if Monoid[B]
-  - Map[A,B]    if Monoid[B]
-  - (A,B) if Monoid[A] and Monoid[B]
+  - ~Order[A]~
+  - ~Either[A,B]~ if Monoid[B]
+  - ~A => B~      if Monoid[B]
+  - ~Map[A,B]~    if Monoid[B]
+  - ~(A,B)~       if Monoid[A] and Monoid[B]
 
 * Monoids for the real world
 
@@ -295,7 +300,7 @@ catsSyntaxAll -> catsSyntaxElse;
 2) Import /packages/:   ~import cats.<...>.all._~
 3) Import /à la carte/: ~import cats.std.future._~
 
-* It's up to you
+* TODO It's up to you
 
 #+BEGIN_SRC scala
 import cats.implicits._
@@ -312,6 +317,7 @@ import cats.std.list._
 
 (List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
+
 * Having fine grained imports
 
   [[file:pics/modular.jpeg]]
@@ -353,10 +359,13 @@ trait CatsPkg
 #+BEGIN_SRC scala
 Functor[Option].void(Option("42"))
 
+// vs
+
 Option("42").void
 #+END_SRC
 
--> mostly up to you but pitfalls apply (later)
+-> mostly up to you
+-> DISCLAIMER: pitfalls apply (later)
 
 * Apache Spark - Using Monoids
 
@@ -413,8 +422,6 @@ So far, so good
 * Let's use Futures
 
 #+BEGIN_SRC scala
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global // No!
 def parse(s: String): Future[Option[Int]] =
   Future.successful(Some(s.toInt))
 
@@ -447,10 +454,6 @@ parse("42").map(_.map(x => add1(x).map(_.map(positive))))
 * Cats to the rescue
 
 #+BEGIN_SRC scala
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global // No!
-import cats.implicits._, cats.data._
-
 (for {
   parsed <- OptionT(parse("42"))
   added  <- OptionT(add1(parsed))
@@ -460,12 +463,12 @@ import cats.implicits._, cats.data._
 
 * The M-word
 
--> this "magic" is known as M-word Transformers
--> make for-comprehension work and reduce boilerplate
--> xyzT = wrapping values of ~F[xyz[A]]~ for any F
--> OptionT => wrap ~F[Option[A]]~, F above is Future
-   -> also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
--> XorT => like ~OptionT~ but for ~Xor~
+- this "magic" is known as M-word Transformers
+- make for-comprehension work and reduce boilerplate
+- xyzT = wrapping values of ~F[xyz[A]]~ for any F
+- OptionT => wrap ~F[Option[A]]~, F above is Future
+   - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
+- XorT => like ~OptionT~ but for ~Xor~
 
 * TODO cats vs scalaz
 
@@ -485,11 +488,6 @@ import cats.implicits._, cats.data._
 * Cats can't find the instance
 
 #+BEGIN_SRC scala
-import cats.Functor
-import cats.std.future._
-
-import scala.concurrent._
-
 Functor[Future].map(Future.successful("42"))(_.toInt)
 #+END_SRC
 
@@ -506,13 +504,11 @@ val either: Either[String,Future[Int]] = Right(Future(1))
 either.sequenceU
 #+END_SRC
 
-* More verbosity to the rescue
+* TODO More verbosity to the rescue
 
 #+BEGIN_SRC scala
-import cats.std.future._
-import cats.std.either._
-val either: Either[String,Future[Int]] = Right(Future(1))
-Traverse[Lambda[A=>Either[String,Future[A]]]].sequenceU(either)
+val either = Right(Future(1))
+Traverse[λ[A=>Either[String,A]]].sequence(either)
 #+END_SRC
 
 * The end
