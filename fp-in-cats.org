@@ -46,6 +46,9 @@
 (org-presentation-mode)
 #+END_SRC
 
+#+RESULTS:
+: t
+
 * This evening at Scala User Group Köln Bonn:
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -w 70 -c -k "FP with cats"
@@ -87,7 +90,7 @@ Plan for today:
 #+BEGIN_SRC scala
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import cats._, cats.kernel._, cats.data._, cats.implicits._
+import cats._, cats.kernel._, cats.data._, cats.implicits._, cats.syntax.all._
 
 println("All set, let's go!")
 #+END_SRC
@@ -479,27 +482,6 @@ type H[A] = F[G[A]]
    - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
 - ~XorT~ => like ~OptionT~ but for ~Xor~
 
-* Cats vs Scalaz
-
-SPOILER: it depends ¯\_(ツ)_/¯
-
-Scalaz:
-  - battle tested
-  - huge, defines everything you may want
-  - concurrency, data structures, zipper etc
-  - Task, streams, lenses, argonaut, tagged instances
-
-Cats:
-  - young, lessons learned from Scalaz
-  - modularity (kernel, core, free, ...)
-  - focused on typeclasses and instances
-  - less data structures (~dogs~ not yet there)
-  - wants to be very community friendly
-  - not yet stable (but almost!)
-  - circe as an alternative to argonout
-
-soon: fs2 will support both cats and Scalaz
-
 * Pitfalls
 
 - there are some subtle issues when starting with cats
@@ -532,25 +514,84 @@ val either = Right(Future(1))
 Traverse[λ[A=>Either[String,A]]].sequence(either)
 #+END_SRC
 
+* Spot the pattern 3: flip it
+
+- often we want to "flip" type constructors:
+
+#+BEGIN_SRC scala
+val listOpt      : List[Future[String]]       = List(Future("a"),Future("b"))
+val optFuture    : Option[Future[Int]]        = Some(Future(1))
+val eitherFuture : Either[String,Future[Int]] = Right(Future(1))
+#+END_SRC
+
+- flip inner and outer, e.g. ~Future~ on the outside
+=> any ideas?
+
+* What we want to do
+
+#+BEGIN_EXAMPLE
+
+For any type A:
+
+      F [ G [ A ] ] <=> G [ F [ A ] ]
+      ^   ^             ^    ^
+      |   |             |    |
+      +---|-------------|----+
+          +-------------+
+
+
+#+END_EXAMPLE
+
+* Why only Future?
+
+- Scala defines ~traverse~ and ~sequence~ for ~Future~
+- ~Future.traverse~
+- how is ~Future~ more special than ~List~, ~Option~ etc?
+
+* Turns out it is not
+
+- cats defines the ~Traverse~ typeclass (~traverse~ & ~sequence~)
+
+#+BEGIN_SRC scala
+List(Future("a"),Future("b")).sequence
+Option(Future(1)).sequence
+eitherFuture.sequenceU
+List(1,2,3).traverse(x => Option(x))
+type MapInt[A] = Map[Int,A]
+val map: MapInt[String] = Map(1 -> "one", 2 -> "two")
+map.traverseU(x => Future(x))
+#+END_SRC
+
+* Cats vs Scalaz
+
+SPOILER: it depends ¯\_(ツ)_/¯
+
+Scalaz:
+  - battle tested
+  - huge, defines everything you may want
+  - concurrency, data structures, zipper etc
+  - Task, streams, lenses, argonaut, tagged instances
+
+Cats:
+  - young, lessons learned from Scalaz
+  - modularity (kernel, core, free, ...)
+  - focused on typeclasses and instances
+  - less data structures (~dogs~ not yet there)
+  - wants to be very community friendly
+  - not yet stable (but almost!)
+  - circe as an alternative to argonout
+
+soon: fs2 will support both cats and Scalaz
+
 * The end
+
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -w 70 -c -k "The End"
 #+END_SRC
 
-#+RESULTS:
-:                _____  _             _____            _
-:               |_   _|| |           |  ___|          | |
-:                 | |  | |__    ___  | |__  _ __    __| |
-:                 | |  | '_ \  / _ \ |  __|| '_ \  / _` |
-:                 | |  | | | ||  __/ | |___| | | || (_| |
-:                 \_/  |_| |_| \___| \____/|_| |_| \__,_|
-:
-:
+* Questions?
 
+         [[file:pics/questions.png]]
 
-* Bonus
-#+BEGIN_SRC sh :results output
-figlet -d fonts -f doom -c -k -w 70 "No, really. The End"
-#+END_SRC
 * Local words
 #  LocalWords:  adjoint functors monoids morphisms
