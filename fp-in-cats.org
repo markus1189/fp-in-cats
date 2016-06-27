@@ -1,4 +1,4 @@
-* Top Secret
+* Prelude
 #+BEGIN_SRC elisp
 (define-minor-mode org-presentation-mode
   "Toggle org presentation mode."
@@ -47,6 +47,7 @@
 figlet -d fonts -f doom -w 70 -c -k "FP with cats"
 #+END_SRC
 
+
 * First off, the bad news
 
 
@@ -81,6 +82,7 @@ import cats._, cats.kernel._, cats.data._, cats.implicits._, cats.syntax.all._
 println("All set, let's go!")
 #+END_SRC
 
+
 * What is 'cats'
 
 #+BEGIN_QUOTE
@@ -101,6 +103,7 @@ val add = (0       + 1      )  + 5
 val mul = (1       * 2      )  * 5
 val cat = (List() ++ List(1)) ++ List(2,3)
 #+END_SRC
+
 
 * Abstracting with Monoids
 
@@ -131,6 +134,7 @@ implicit class MonoidOps[A](val self: A) {
   def +|+(other: A)(implicit M: Monoid[A]) = M.combine(self,other)
 }
 #+END_SRC
+
 
 * Monoid Rules
 
@@ -184,6 +188,7 @@ Option(1) +|+ none
 none +|+ Option(42)
 none +|+ none
 #+END_SRC
+
 
 * Monoids everywhere
 
@@ -242,7 +247,7 @@ Easy? Only do *one* traversal over the input
 
 => let's take a look
 
-* General structure of packages in cats
+* TODO General structure of packages in cats
 
 | package       | contains                     | examples          |
 |---------------+------------------------------+-------------------|
@@ -333,6 +338,7 @@ package object
   + chained package clauses
 
 #+BEGIN_SRC scala
+package de
 package object codecentric extends CatsPkg
 
 trait CatsPkg
@@ -341,6 +347,14 @@ trait CatsPkg
   with SemigroupSyntax
   // with ...
 #+END_SRC
+
+#+BEGIN_SRC scala
+package de
+package codecentric
+
+import cats.syntax.group._
+#+END_SRC
+
 
 * Using apply vs syntax
 
@@ -372,6 +386,16 @@ val z = Monoid.empty[(Int,Map[String,Int],Int)]
 val (words,wordCount,chars) = data.fold(z)(_ |+| _)
 #+END_SRC
 
+#+BEGIN_EXAMPLE
+1) "FP in cats in cologne"
+2) List("FP","in","cats","in","cologne")
+3) List((1,Map("FP"->1),2),(1,Map("in"->1),2),
+        (1,Map("cats"->1),4),(1,Map("in"->1),2), ...)
+4) (5,Map("FP"->1,"in"->2,"cats"->1,...),17)
+#+END_EXAMPLE
+
+Remember the requirement: /easy/ extension!
+Let's also calculate maximum word length
 * Apache Spark - Extension: Max word length
 
 #+BEGIN_SRC scala
@@ -434,6 +458,7 @@ parse("42").flatMap {
 }
 #+END_SRC
 
+
 * That is not nice :(
 
 -> Can you spot a pattern:
@@ -460,10 +485,11 @@ type H[A] = F[G[A]]
 * For-comprehension-ability restored \o/
 
 #+BEGIN_SRC scala
+def transform: Future[Option[A]] => H[A]
 (for {
-  parsed <- OptionT(parse("42"))
-  added  <- OptionT(add1(parsed))
-  result <- OptionT(positive(added))
+  parsed <- transform(parse("42"))
+  added  <- transform(add1(parsed))
+  result <- transform(positive(added))
 } yield result).value
 #+END_SRC
 
@@ -477,39 +503,6 @@ type H[A] = F[G[A]]
 - OptionT = wrap ~F[Option[A]]~, F above is Future
    - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
 - ~XorT~ => like ~OptionT~ but for ~Xor~
-
-* Pitfalls
-
-- there are some subtle issues when starting with cats
-- we are going to look at some pitfalls
-- some are IntelliJ related, other specific to Scala
-
-* Cats can't find the instance
-
-#+BEGIN_SRC scala
-Functor[Future].map(Future.successful("42"))(_.toInt)
-#+END_SRC
-
-#+BEGIN_EXAMPLE
-Error:(6, 9) could not find implicit value for parameter instance: cats.Functor[scala.concurrent.Future]
-Functor[Future].map(Future.successful("42"))(_.toInt)
-       ^
-#+END_EXAMPLE
-
-* IntelliJ not smart enough
-
-#+BEGIN_SRC scala
-val either: Either[String,Future[Int]] = Right(Future(1))
-either.sequenceU
-#+END_SRC
-
-* TODO More verbosity to the rescue
-
-#+BEGIN_SRC scala
-val either = Right(Future(1))
-Traverse[λ[A=>Either[String,A]]].sequence(either)
-#+END_SRC
-
 * Spot the pattern 3: flip it
 
 - often we want to "flip" type constructors:
@@ -538,7 +531,7 @@ For any type A:
 
 #+END_EXAMPLE
 
-* Why only Future?
+* TODO Why only Future?
 
 - Scala defines ~traverse~ and ~sequence~ for ~Future~
 - ~Future.traverse~
@@ -557,6 +550,43 @@ List(1,2,3).traverse(x => Option(x))
 type MapInt[A] = Map[Int,A]
 val map: MapInt[String] = Map(1 -> "one", 2 -> "two")
 map.traverseU(x => Future(x))
+#+END_SRC
+
+
+* Pitfalls
+
+- there are some subtle issues when starting with cats
+- we are going to look at some pitfalls
+- some are IntelliJ related, other specific to Scala
+
+* Cats can't find the instance
+
+#+BEGIN_SRC scala
+import cats.std.future._
+import cats.Functor
+import scala.concurrent.Future
+Functor[Future].map(Future.successful("42"))(_.toInt)
+#+END_SRC
+
+#+BEGIN_EXAMPLE
+Error:(6, 9) could not find implicit value for parameter instance: cats.Functor[scala.concurrent.Future]
+Functor[Future].map(Future.successful("42"))(_.toInt)
+       ^
+#+END_EXAMPLE
+
+* TODO Solution: Import ExecutionContext
+* IntelliJ not smart enough
+
+#+BEGIN_SRC scala
+val either: Either[String,Future[Int]] = Right(Future(1))
+either.sequenceU
+#+END_SRC
+
+* TODO More verbosity to the rescue
+
+#+BEGIN_SRC scala
+val either = Right(Future(1))
+Traverse[λ[A=>Either[String,A]]].sequence(either)
 #+END_SRC
 
 * Cats vs Scalaz
@@ -585,6 +615,7 @@ soon: fs2 will support both cats and Scalaz
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -w 70 -c -k "The End"
 #+END_SRC
+
 
 * Questions?
 
