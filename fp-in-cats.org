@@ -71,24 +71,17 @@ figlet -d fonts -f doom -w 70 -c -k "FP with cats"
 
 * Functional Programming has nothing to do with this
 
-Good! You don't need them anyway. ¯\_(ツ)_/¯
+Good! You don't need them anyway.
 
-Plan for today:
-
-- Not about how good FP is (but it is!)
-- Spot the pattern 1: combine things
-- How cats is organized
-- Spot the pattern 2: nested things
-- Cats vs. Scalaz
-- Some pitfalls
-- Conclusion
+¯\_(ツ)_/¯
 
 * Some technicality before we start
 
 (I have to eval this for rest of examples)
 
 #+BEGIN_SRC scala
-import scala.concurrent.Future
+import scala.concurrent._
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats._, cats.kernel._, cats.data._, cats.implicits._, cats.syntax.all._
 
@@ -106,19 +99,13 @@ Lightweight, modular, and extensible library for functional programming.
  -> Guide: http://typelevel.org/cats/
  -> Scaladoc: http://typelevel.org/cats/api/#package
 
-* TODO Why should you learn about 'cats'?
-
- -> raise the abstraction level
- -> less repetition and duplicated code, less maintenance, less bugs
- -> many common patterns are already implemented here
-
 * Combining stuff (Monoid)
 
 Can you spot a pattern here?
 
 #+BEGIN_SRC scala
-val add = (0 + 1) + 5
-val mul = (1 * 2) * 5
+val add = (0       + 1      )  + 5
+val mul = (1       * 2      )  * 5
 val cat = (List() ++ List(1)) ++ List(2,3)
 #+END_SRC
 
@@ -129,8 +116,8 @@ def empty1: Int = 0
 def empty2: Int = 1
 def empty3: List[Int] = List()
 
-val add = (empty1 |+| 1) |+| 5
-val mul = (empty2 |+| 2) |+| 5
+val add = (empty1 |+| 1      ) |+| 5
+val mul = (empty2 |+| 2      ) |+| 5
 val mul = (empty3 |+| List(1)) |+| List(2,3)
 #+END_SRC
 
@@ -207,11 +194,12 @@ none +|+ none
 
 * Monoids everywhere
 
-#+BEGIN_EXAMPLE
-1 |+| 2                           // 3
-Future(1) |+| Future(2)           // Future(3)
-Some("Hello, ") |+| Some("World") // Some("Hello, World")
-#+END_EXAMPLE
+#+BEGIN_SRC scala
+1 |+| 2
+Await.result(Future("a") |+| Future("b"), Duration.Inf)
+Option("Hello, ") |+| Option("World")
+Map(1->List('a','b')) |+| Map(1->List('c'),2->List())
+#+END_SRC
 
 Also:
 
@@ -220,6 +208,15 @@ Also:
   - ~A => B~      if Monoid[B]
   - ~Map[A,B]~    if Monoid[B]
   - ~(A,B)~       if Monoid[A] and Monoid[B]
+
+* Functions for monoids
+
+- cats also defines many other functions for monoids
+  - specialized ~fold~ with start and combine function
+  - Validated (error accumulation)
+  - and many more
+
+- at this point you might be thinking:
 
 * Monoids for the real world
 
@@ -235,6 +232,8 @@ Task: calculate statistics with Apache Spark
   +) make it easy to extend
 
 Easy? Only do *one* traversal over the input
+
+(back to cats)
 
 * But before, let's talk about cats
 
@@ -315,11 +314,13 @@ import cats.std.list._
 (List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
 
+(you have to know where to find it though)
+
 * Having fine grained imports
 
   [[file:pics/modular.jpeg]]
 
-* Where to find it
+* TODO Where to find it
 
  1) typeclass (Monoid,Ordering)
    -> ~cats~,
@@ -361,7 +362,7 @@ Functor[Option].void(Option("42"))
 Option("42").void
 #+END_SRC
 
-mostly up to you,
+mostly up to you, first one is more explicit
 DISCLAIMER: pitfalls apply (later)
 
 * Apache Spark - Using Monoids
@@ -392,6 +393,8 @@ val z = Monoid.empty[(Int,Map[String,Int],Int,Option[Max[Int]])]
 
 val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
 #+END_SRC
+
+(okay back to cats)
 
 * From Apache Spark back to cats
 
