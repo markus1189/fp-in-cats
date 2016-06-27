@@ -51,7 +51,6 @@
 figlet -d fonts -f doom -w 70 -c -k "FP with cats"
 #+END_SRC
 
-
 * First off, the bad news
 
 
@@ -93,7 +92,6 @@ import cats._, cats.kernel._, cats.data._, cats.implicits._
 println("All set, let's go!")
 #+END_SRC
 
-
 * What is 'cats'
 
 #+BEGIN_QUOTE
@@ -120,7 +118,6 @@ val add = (0 + 1) + 5
 val mul = (1 * 2) * 5
 val cat = (List() ++ List(1)) ++ List(2,3)
 #+END_SRC
-
 
 * Abstracting with Monoids
 
@@ -152,7 +149,6 @@ implicit class MonoidOps[A](val self: A) {
 }
 #+END_SRC
 
-
 * Monoid Rules
 
 Implementations have to obey some rules:
@@ -181,7 +177,6 @@ implicit val ourMonoid: Monoid[X] = new Monoid[X] {
 }
 #+END_SRC
 
-
 * Monoids can be combined
 
 We can build monoids from monoids:
@@ -206,7 +201,6 @@ Option(1) +|+ none
 none +|+ Option(42)
 none +|+ none
 #+END_SRC
-
 
 * Monoids everywhere
 
@@ -317,7 +311,6 @@ import cats.std.list._
 
 (List(1),List("a")) |+| (List(2),List("b"))
 #+END_SRC
-
 
 * Having fine grained imports
 
@@ -442,7 +435,6 @@ parse("42").flatMap {
 }
 #+END_SRC
 
-
 * That is not nice :(
 
 -> Can you spot a pattern:
@@ -487,20 +479,32 @@ type H[A] = F[G[A]]
    - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
 - ~XorT~ => like ~OptionT~ but for ~Xor~
 
-* TODO cats vs scalaz
+* Cats vs Scalaz
 
-- cats: most stuff you'll need, but still some things missing
-- cats: more modular: cats-core, cats-free, dogs, kittens
-- scalaz: no Task and Scalaz-Stream (soon: fs2)
-- scalaz: monocle (lenses)
-- scalaz: tagged, for alternative instances of e.g. Monoid (cats: not yet)
-- JSON parsing: argonaut (Scalaz), circe (cats)
+SPOILER: it depends ¯\_(ツ)_/¯
+
+Scalaz:
+  - battle tested
+  - huge, defines everything you may want
+  - concurrency, data structures, zipper etc
+  - Task, streams, lenses, argonaut, tagged instances
+
+Cats:
+  - young, lessons learned from Scalaz
+  - modularity (kernel, core, free, ...)
+  - focused on typeclasses and instances
+  - less data structures (~dogs~ not yet there)
+  - wants to be very community friendly
+  - not yet stable (but almost!)
+  - circe as an alternative to argonout
+
+soon: fs2 will support both cats and Scalaz
 
 * Pitfalls
 
 - there are some subtle issues when starting with cats
 - we are going to look at some pitfalls
-- some are IntelliJ related, other specific to compiler
+- some are IntelliJ related, other specific to Scala
 
 * Cats can't find the instance
 
@@ -533,71 +537,20 @@ Traverse[λ[A=>Either[String,A]]].sequence(either)
 figlet -d fonts -f doom -w 70 -c -k "The End"
 #+END_SRC
 
+#+RESULTS:
+:                _____  _             _____            _
+:               |_   _|| |           |  ___|          | |
+:                 | |  | |__    ___  | |__  _ __    __| |
+:                 | |  | '_ \  / _ \ |  __|| '_ \  / _` |
+:                 | |  | | | ||  __/ | |___| | | || (_| |
+:                 \_/  |_| |_| \___| \____/|_| |_| \__,_|
+:
+:
+
 
 * Bonus
 #+BEGIN_SRC sh :results output
 figlet -d fonts -f doom -c -k -w 70 "No, really. The End"
 #+END_SRC
-
-* Typesafe equality
-** The sad story of '=='
-#+BEGIN_SRC scala
-type Email = String // TODO: make value class
-
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" == email ||
-    "developer@mail.com" == email
-}
-
-isInternal("customer@mail.com") // => false
-isInternal("admin@mail.com")    // => true
-#+END_SRC
-
-** Refactoring time
-#+BEGIN_SRC scala
-case class Email(value: String) // extends AnyVal
-
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" == email ||
-    "developer@mail.com" == email
-}
-
-isInternal(Email("customer@mail.com"))
-isInternal(Email("admin@mail.com"))
-#+END_SRC
-
-** An alternative: 'Eq'
-#+BEGIN_SRC scala
-import cats.kernel.Eq          // the Eq type class
-import cats.syntax.eq._ // === syntax
-
-case class Email(value: String) extends AnyVal
-object Email {
-  val eqEmail: Eq[Email] =
-    Eq.fromUniversalEquals
-}
-
-def isInternal(email: Email): Boolean = {
-  "admin@mail.com" === email ||
-    "developer@mail.com" === email
-}
-#+END_SRC
-
-** Summary: ~Eq~
-- equality based on type classes is safer
-- allows you to catch errors during refactoring
--
-- will *not* compile
-- many ~Eq~ instances predefined
-- still some work required for own types
-
-* Xor, the Greek God of Error
-
-#+BEGIN_SRC scala
-def validatePassword(pw: String): Boolean = {
-  def minLength(s: String): Xor[String,Unit]
-}
-#+END_SRC
-
 * Local words
 #  LocalWords:  adjoint functors monoids morphisms
