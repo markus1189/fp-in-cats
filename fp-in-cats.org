@@ -551,6 +551,7 @@ For any type A:
 * Turns out it is not
 
 - cats defines the ~Traverse~ typeclass (~traverse~ & ~sequence~)
+- ~fa.traverse(f)~ === ~fa.map(f).sequence~
 
 #+BEGIN_SRC scala
 List(Future("a"),Future("b")).sequence
