@@ -43,13 +43,16 @@
 : t
 
 * This evening at Scala User Group Köln Bonn:
-#+BEGIN_SRC sh :results output
-figlet -d fonts -f doom -w 70 -c -k "FP with cats"
+#+BEGIN_SRC elisp
+(play-sound-file-async "sounds/intro.mp3")
+(sit-for 5.5)
+(play-sound-file-async "sounds/intro2.mp3")
+(shell-command-to-string "figlet -d fonts -f doom -w 70 -c -k \"FP with cats\"")
 #+END_SRC
-
 
 * First off, the bad news
 
+  Not about those cats:
 
     [[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]
 
