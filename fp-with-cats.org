@@ -293,14 +293,14 @@ Easy? Only do *one* traversal over the input
 
 * General structure of packages in cats
 
-| package           | contains                     | examples          |
-|-------------------+------------------------------+-------------------|
-| ~cats~            | type classes                 | Functor,Monoid    |
-| ~cats.kernel~     | essential type classes       | Eq, Ordering      |
-| ~cats.std~        | instances for standard Scala | List,Vector,Tuple |
-| ~cats.kernel.std~ | instances for standard Scala | List,Vector,Tuple |
-| ~cats.data~       | data types                   | Xor,Validated     |
-| ~cats.syntax~     | /optional/ syntactic sugar   | |+|, <any>.void   |
+| package           | contains                     | examples            |
+|-------------------+------------------------------+---------------------|
+| ~cats~            | type classes                 | Functor,Monoid      |
+| ~cats.kernel~     | essential type classes       | Eq, Ordering        |
+| ~cats.std~        | instances for standard Scala | List,Vector,Tuple   |
+| ~cats.kernel.std~ | instances for standard Scala | List,Vector,Tuple   |
+| ~cats.data~       | data types                   | Xor,Validated       |
+| ~cats.syntax~     | /optional/ syntactic sugar   | combine, <any>.void |
 
 * Imports: à la carte or the whole menu
 #+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=18
