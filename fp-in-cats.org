@@ -35,7 +35,7 @@
     (org-previous-visible-heading arg)
     (org-narrow-to-subtree)))
 
-(flyspell-mode -1)
+(flyspell-mode nil)
 (org-babel-remove-result-one-or-many '(4))
 (org-cycle '(64))
 (setq org-confirm-babel-evaluate nil)
@@ -48,6 +48,7 @@
 #+RESULTS:
 : t
 
+
 * This evening at Scala User Group Köln Bonn:
 #+BEGIN_SRC elisp
 (play-sound-file-async "sounds/intro.mp3")
@@ -55,6 +56,7 @@
 (play-sound-file-async "sounds/intro2.mp3")
 (shell-command-to-string "figlet -d fonts -f doom -w 70 -c -k \"FP with cats\"")
 #+END_SRC
+
 
 * First off, the bad news
 
@@ -87,9 +89,11 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import cats._, cats.kernel._, cats.data._, cats.implicits._, cats.syntax.all._
+import scala.util.Try
 
 println("All set, let's go!")
 #+END_SRC
+
 
 * What is 'cats'
 
@@ -101,6 +105,16 @@ Lightweight, modular, and extensible library for functional programming.
  - Github: https://github.com/typelevel/cats
  - Guide: http://typelevel.org/cats/
  - Scaladoc: http://typelevel.org/cats/api/#package
+
+* Plan for today
+
+- spot some patterns
+- raise level of abstraction with cats
+- overview over cats' package structure
+- some pitfalls when starting
+- cats vs Scalaz
+
+- repository: http://github.com/markus1189/fp-with-cats
 
 * Combining stuff (Monoid)
 
@@ -165,12 +179,32 @@ Implementations have to obey some rules:
 3) List concatenation
 
 #+BEGIN_SRC scala
-type X = ???
-implicit val ourMonoid: Monoid[X] = new Monoid[X] {
-  override def empty: X = ???
-  override def combine(x: X, y: X): X = ???
+implicit val intPlus: Monoid[Int] = new Monoid[Int] {
+  override def empty: Int = ???
+  override def combine(x: Int, y: Int): Int = ???
 }
+
+1 +|+ 41
 #+END_SRC
+
+#+BEGIN_SRC scala
+implicit val doubleMul: Monoid[Double] = new Monoid[Double] {
+  override def empty: Double = ???
+  override def combine(x: Double, y: Double): Double = ???
+}
+
+8.0 +|+ 5.25
+#+END_SRC
+
+#+BEGIN_SRC scala
+implicit def listConcat[A]: Monoid[List[A]] = new Monoid[List[A]] {
+  override def empty: List[A] = ???
+  override def combine(x: List[A], y: List[A]): List[A] = ???
+}
+
+List(1,2,3) +|+ List(4,5,6)
+#+END_SRC
+
 
 * Monoids can be combined
 
@@ -191,7 +225,9 @@ implicit def option[A:Monoid] = new Monoid[Option[A]] {
 
 #+BEGIN_SRC scala
 val none: Option[Int] = None
-Option(1) +|+ Option(2)
+Option(2) +|+ Option(40)
+Option(8.0) +|+ Option(5.25)
+Option(List(1,2,3)) +|+ Option(List(0))
 Option(1) +|+ none
 none +|+ Option(42)
 none +|+ none
@@ -249,21 +285,22 @@ Easy? Only do *one* traversal over the input
 
 * Cats, a library for FP in Scala
 
--> cats defines a lot of things
--> organization is confusing at first
-  -> but obvious after learning some rules
+- cats defines a lot of things
+- organization is confusing at first
+  - but obvious after learning some rules
 
 => let's take a look
 
-* TODO General structure of packages in cats
+* General structure of packages in cats
 
-| package       | contains                     | examples          |
-|---------------+------------------------------+-------------------|
-| ~cats~        | type classes                 | Functor,Monoid    |
-| ~cats.kernel~ | essential type classes       | Eq, Ordering      |
-| ~cats.std~    | instances for standard Scala | List,Vector,Tuple |
-| ~cats.data~   | data types                   | Xor,Validated     |
-| ~cats.syntax~ | /optional/ syntactic sugar   |                   |
+| package           | contains                     | examples          |
+|-------------------+------------------------------+-------------------|
+| ~cats~            | type classes                 | Functor,Monoid    |
+| ~cats.kernel~     | essential type classes       | Eq, Ordering      |
+| ~cats.std~        | instances for standard Scala | List,Vector,Tuple |
+| ~cats.kernel.std~ | instances for standard Scala | List,Vector,Tuple |
+| ~cats.data~       | data types                   | Xor,Validated     |
+| ~cats.syntax~     | /optional/ syntactic sugar   | |+|, <any>.void   |
 
 * Imports: à la carte or the whole menu
 #+BEGIN_SRC dot :file packages.png :cmdline -Tpng -Nfontsize=18
@@ -302,12 +339,12 @@ catsSyntaxAll -> catsSyntaxElse;
 2) Import /packages/:   ~import cats.<...>.all._~
 3) Import /à la carte/: ~import cats.std.future._~
 
-* TODO It's up to you
+* It's up to you
 
 #+BEGIN_SRC scala
 import cats.implicits._
 
-(List(1),List("a")) |+| (List(2),List("b"))
+(1,List("a")) |+| (2,List("b"))
 #+END_SRC
 
  VS
@@ -326,18 +363,22 @@ import cats.std.list._
 
   [[file:pics/modular.jpeg]]
 
-* TODO Where to find it
+* Where to find it
 
  1) typeclass (Monoid,Ordering)
    -> ~cats~,
-      or ~cats.kernel~ (since 0.6.0+)
+      or ~cats.kernel~
 
- 2) data type (Xor, Validated)
+ 2) instances (e.g. Monoid for xyz)
+   -> ~cats.std.<...>~,
+      or ~cats.kernel.std.<...>~
+
+ 3) operators and extension methods (|+|, *>, >>=, <any>.void)
+   -> ~cats.syntax.<...>~
+
+ 4) data structures (Xor, Validated)
    -> ~cats.data~
 
- 3) instances (List monoid, ordering for xyz)
-   -> ~cats.std.<...>~,
-      or ~cats.kernel.<...>~
 
 * Middle ground for imports with package objects
 
@@ -363,18 +404,19 @@ package codecentric
 import cats.syntax.group._
 #+END_SRC
 
-
 * Using apply vs syntax
 
 - use typeclass explicitly
 - or import the provided syntax "magic"
 
 #+BEGIN_SRC scala
-Functor[Option].void(Option("42"))
+Monoid[Int].combine(21,21)
+Functor[Option].map(Option(1))(_+1)
 
 // vs
 
-Option("42").void
+21 |+| 21
+Option(1).map(_+1)
 #+END_SRC
 
 mostly up to you, first one is more explicit
@@ -392,13 +434,17 @@ val data = sc.textFile(file).flatMap(_.split("""\s+""")).map(step)
 val z = Monoid.empty[(Int,Map[String,Int],Int)]
 
 val (words,wordCount,chars) = data.fold(z)(_ |+| _)
+val averageWordLength = chars / words
 #+END_SRC
 
 #+BEGIN_EXAMPLE
 1) "FP in cats in cologne"
+
 2) List("FP","in","cats","in","cologne")
+
 3) List((1,Map("FP"->1),2),(1,Map("in"->1),2),
         (1,Map("cats"->1),4),(1,Map("in"->1),2), ...)
+
 4) (5,Map("FP"->1,"in"->2,"cats"->1,...),17)
 #+END_EXAMPLE
 
@@ -417,6 +463,7 @@ val data = sc.textFile(file).flatMap(_.split("""\s+""")).map(step)
 val z = Monoid.empty[(Int,Map[String,Int],Int,Option[Max[Int]])]
 
 val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
+val averageWordLength = chars / words
 #+END_SRC
 
 (okay back to cats)
@@ -430,7 +477,7 @@ val (words,wordCount,chars,max) = data.fold(z)(_ |+| _)
 * Spot the pattern (round 2)
 
 #+BEGIN_SRC scala
-def parse(s: String): Option[Int] = Some(s.toInt)
+def parse(s: String): Option[Int] = Try(s.toInt).toOption
 
 def add1(i: Int): Option[Int] = Some(i+1)
 
@@ -449,7 +496,7 @@ So far, so good
 
 #+BEGIN_SRC scala
 def parse(s: String): Future[Option[Int]] =
-  Future.successful(Some(s.toInt))
+  Future.successful(Try(s.toInt).toOption)
 
 def add1(i: Int): Future[Option[Int]] =
   Future.successful(Some(i+1))
@@ -476,8 +523,6 @@ parse("42").map(_.map(x => add1(x).map(_.map(positive))))
 // Future[Option[Future[Option[Future[Option[Boolean]]]]]]
 #+END_SRC
 
--> Quiz: why does flatMap not work here?
-
 * Cats to the rescue
 
 - There is a pattern: ~F[G[F[G[F[G[...]]]]]]~
@@ -493,13 +538,14 @@ type H[A] = F[G[A]]
 * For-comprehension-ability restored \o/
 
 #+BEGIN_SRC scala
-def transform: Future[Option[A]] => H[A]
-(for {
+def transform[A]: Future[Option[A]] => H[A] = ???
+val success = (for {
   parsed <- transform(parse("42"))
   added  <- transform(add1(parsed))
   result <- transform(positive(added))
 } yield result).value
 #+END_SRC
+
 
 * The M-word
 
@@ -508,7 +554,7 @@ def transform: Future[Option[A]] => H[A]
 - ~xyzT~ = wrapping values of ~F[xyz[A]]~ for any F
 
 - in our case: ~Future[Option[Future[Option[...]]]]~
-- OptionT = wrap ~F[Option[A]]~, F above is Future
+- ~OptionT~ = wrap ~F[Option[A]]~, F above is Future
    - also: ~List[Option[A]]~, ~Xor[String,Option[A]]~, ...
 - ~XorT~ => like ~OptionT~ but for ~Xor~
 * Spot the pattern 3: flip it
@@ -539,7 +585,7 @@ For any type A:
 
 #+END_EXAMPLE
 
-* TODO Why only Future?
+* Why only Future?
 
 - Scala defines ~traverse~ and ~sequence~ for ~Future~
 - ~Future.traverse~
@@ -582,7 +628,24 @@ Functor[Future].map(Future.successful("42"))(_.toInt)
        ^
 #+END_EXAMPLE
 
-* TODO Solution: Import ExecutionContext
+* Use the source, Luke
+
+#+BEGIN_SRC scala
+// in cats.std.future:
+trait FutureInstances {
+  implicit def catsStdInstancesForFuture(implicit ec: ExecutionContext) = ???
+}
+#+END_SRC
+
+#+BEGIN_SRC scala
+import cats.std.future._
+import cats.Functor
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+Functor[Future].map(Future.successful("42"))(_.toInt)
+#+END_SRC
+
+
 * IntelliJ not smart enough
 
 #+BEGIN_SRC scala
@@ -590,7 +653,8 @@ val either: Either[String,Future[Int]] = Right(Future(1))
 either.sequenceU
 #+END_SRC
 
-* TODO More verbosity to the rescue
+
+* More verbosity to the rescue
 
 #+BEGIN_SRC scala
 val either = Right(Future(1))
@@ -614,14 +678,17 @@ Cats:
   - less data structures (~dogs~ not yet there)
   - wants to be very community friendly
   - not yet stable (but almost!)
-  - circe as an alternative to argonout
+  - circe as an alternative to argonaut
 
 soon: fs2 will support both cats and Scalaz
 
 * The end
 
-#+BEGIN_SRC sh :results output
-figlet -d fonts -f doom -w 70 -c -k "The End"
+#+BEGIN_SRC elisp
+(play-sound-file-async "sounds/intro.mp3")
+(sit-for 5.5)
+(play-sound-file-async "sounds/intro2.mp3")
+(shell-command-to-string "figlet -d fonts -f doom -w 70 -c -k \"The End\"")
 #+END_SRC
 
 
