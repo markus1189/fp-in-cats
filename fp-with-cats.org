@@ -547,9 +547,8 @@ val success = (for {
 #+END_SRC
 
 
-* The M-word
-
-- known as M-word Transformers
+* Warm fuzzy things
+- known as [[https://www.urbandictionary.com/define.php?term=Warm%2520Fuzzy%2520Thing][warm fuzzy thing]] Transformers
 - think: make for-comprehension work and reduce boilerplate
 - ~xyzT~ = wrapping values of ~F[xyz[A]]~ for any F
 
