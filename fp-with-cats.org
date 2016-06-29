@@ -60,11 +60,11 @@
 
 * First off, the bad news
 
-  Not about those cats:
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]"
+#+END_SRC
 
-    [[file:pics/cats-dressed-vintage-photo_small_xed.jpg]]
-
-    [[http://www.publicdomainpictures.net/view-image.php?image=76025&picture=cats-dressed-vintage-photo][source]]
+ [[http://www.publicdomainpictures.net/view-image.php?image=76025&picture=cats-dressed-vintage-photo][source]]
 
 * Check for some basic understanding
 
@@ -262,7 +262,10 @@ Also:
 
 * Monoids for the real world
 
-         [[file:pics/skeptical.jpg]]
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/skeptical.jpg]]"
+#+END_SRC
+
 
 * Apache Spark
 
@@ -278,11 +281,11 @@ Easy? Only do *one* traversal over the input
 (back to cats)
 
 * But before, let's talk about cats
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/cat_appears.jpg]]"
+#+END_SRC
 
-    [[file:pics/cat_appears.jpg]]
-
-    [[https://www.flickr.com/photos/wapiko57/6514540899/in/photolist-aVEJ3F-ar1fEN-q83znw-9LQPij-6oEGix-6zsGDL-Rw6yd-9xw6Ho-qTG9ni-aqXAKH-8GeWbL-owVkdM-d55j3Y-9x45Vn-uYQ2H-8zgM7V-nEt2nr-96GYDJ-5aeKFN-97uBZ7-65fjVh-fNpw7f-9yMddK-uYQ9N-aQEhqt-6iwBTH-JWEQ-egs32z-4DTznL-cgE8rJ-7xfjz1-85Cihv-96DW6n-8tkTfR-dJNGUc-e5Nk39-4qfFXo-21pAT-4SxWCr-pbNEGz-nXsMRD-ajyAM1-7Xdggt-b5nAkp-4WHNSC-4WDvkp-eeDNhC-kUgwo-4vcd6o-a9mSXv][source]]
-
+[[https://www.flickr.com/photos/wapiko57/6514540899/in/photolist-aVEJ3F-ar1fEN-q83znw-9LQPij-6oEGix-6zsGDL-Rw6yd-9xw6Ho-qTG9ni-aqXAKH-8GeWbL-owVkdM-d55j3Y-9x45Vn-uYQ2H-8zgM7V-nEt2nr-96GYDJ-5aeKFN-97uBZ7-65fjVh-fNpw7f-9yMddK-uYQ9N-aQEhqt-6iwBTH-JWEQ-egs32z-4DTznL-cgE8rJ-7xfjz1-85Cihv-96DW6n-8tkTfR-dJNGUc-e5Nk39-4qfFXo-21pAT-4SxWCr-pbNEGz-nXsMRD-ajyAM1-7Xdggt-b5nAkp-4WHNSC-4WDvkp-eeDNhC-kUgwo-4vcd6o-a9mSXv][source]]
 * Cats, a library for FP in Scala
 
 - cats defines a lot of things
@@ -360,8 +363,9 @@ import cats.std.list._
 (you have to know where to find it though)
 
 * Having fine grained imports
-
-  [[file:pics/modular.jpeg]]
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/modular.jpeg]]"
+#+END_SRC
 
 * Where to find it
 
@@ -470,9 +474,11 @@ val averageWordLength = chars / words
 
 * From Apache Spark back to cats
 
-    [[file:pics/cat_appears2.jpg]]
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/cat_appears2.jpg]]"
+#+END_SRC
 
-    [[https://www.flickr.com/photos/wapiko57/6485554303/in/photolist-aT7akM-5rjoU-aqXABF-5EY2CH-Ei9g6L-7CJLZB-dw5ubE-4WU9CM-9c8DxY-mJacdB-7CNDjJ-DLYJJ4-4UqYjw-queHDF-DBBweh-4WHPqW-fHFKMq-e4LY68-Deyhdx-Deyhzz-6j8y5z-apVto4-dTJt5S-nPofCV-5k9icV-5RWdiH-dGc58F-dGhsHf-6hTmrR-9x75ih-aVEwEH-pGyf51-g8fzC-c2Qzeo-d55Dz3-hDVqdM-ehMkwT-bErmXo-apY92G-apVrgH-cpQvZ-5kCxD9-95uTJS-9Kwe3v-j17GZ-njVWkm-Deyemv-apVuSt-6jcJZW-9eDEkS][source]]
+ [[https://www.flickr.com/photos/wapiko57/6485554303/in/photolist-aT7akM-5rjoU-aqXABF-5EY2CH-Ei9g6L-7CJLZB-dw5ubE-4WU9CM-9c8DxY-mJacdB-7CNDjJ-DLYJJ4-4UqYjw-queHDF-DBBweh-4WHPqW-fHFKMq-e4LY68-Deyhdx-Deyhzz-6j8y5z-apVto4-dTJt5S-nPofCV-5k9icV-5RWdiH-dGc58F-dGhsHf-6hTmrR-9x75ih-aVEwEH-pGyf51-g8fzC-c2Qzeo-d55Dz3-hDVqdM-ehMkwT-bErmXo-apY92G-apVrgH-cpQvZ-5kCxD9-95uTJS-9Kwe3v-j17GZ-njVWkm-Deyemv-apVuSt-6jcJZW-9eDEkS][source]]
 
 * Spot the pattern (round 2)
 
@@ -691,9 +697,10 @@ soon: fs2 will support both cats and Scalaz
 #+END_SRC
 
 
-* Questions?
-
-         [[file:pics/questions.png]]
+* Questions
+#+BEGIN_SRC sh :results raw
+echo "[[file:pics/questions.png]]"
+#+END_SRC
 
 * Local words
 #  LocalWords:  adjoint functors monoids morphisms
